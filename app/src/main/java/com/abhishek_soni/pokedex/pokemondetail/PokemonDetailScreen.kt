@@ -21,6 +21,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.times
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -45,16 +48,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.times
 import androidx.navigation.NavController
 //import androidx.test.espresso.base.Default
 import com.abhishek_soni.pokedex.R
-import com.abhishek_soni.pokedex.data.remote.response.Icons
 import com.abhishek_soni.pokedex.data.remote.response.Type
 import com.abhishek_soni.pokedex.data.remote.response.pokemon
-import com.abhishek_soni.pokedex.util.Resouse
+import com.abhishek_soni.pokedex.util.Resource
+import com.abhishek_soni.pokedex.util.parseStatToAbbr
+import com.abhishek_soni.pokedex.util.parseStatToColor
+import com.abhishek_soni.pokedex.util.parseTypeToColor
 import com.google.accompanist.coil.CoilImage
 import java.util.Locale
 import kotlin.math.round
+
 
 
 @Composable
@@ -66,7 +73,7 @@ fun PokemonDetailScreen(
     pokemonImageSize: Dp = 200.dp,
     viewModel: PokemonDetailViewModel = hiltNavGraphViewModel()
 ) {
-    val pokemonInfo = produceState<Resouse<pokemon>>(initialValue = Resouse.Loading()) {
+    val pokemonInfo = produceState<Resource<pokemon>>(initialValue = Resource.Loading()) {
         value = viewModel.getPokemonInfo(pokemonName)
     }.value
     Box(modifier = Modifier
@@ -93,7 +100,7 @@ fun PokemonDetailScreen(
                 )
                 .shadow(10.dp, RoundedCornerShape(10.dp))
                 .clip(RoundedCornerShape(10.dp))
-                .background(MaterialTheme.colors.surface)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(16.dp)
                 .align(Alignment.BottomCenter),
             loadingModifier = Modifier
@@ -109,7 +116,7 @@ fun PokemonDetailScreen(
         Box(contentAlignment = Alignment.TopCenter,
             modifier = Modifier
                 .fillMaxSize()) {
-            if(pokemonInfo is Resouse.Success) {
+            if(pokemonInfo is Resource.Success) {
                 pokemonInfo.data?.sprites?.let {
                     CoilImage(
                         data = it.frontDefault,
@@ -158,28 +165,28 @@ fun PokemonDetailTopSection(
 
 @Composable
 fun PokemonDetailStateWrapper(
-    pokemonInfo: Resouse<pokemon>,
+    pokemonInfo: Resource<pokemon>,
     modifier: Modifier = Modifier,
     loadingModifier: Modifier = Modifier
 ) {
     when(pokemonInfo) {
-        is Resouse.Success -> {
+        is Resource.Success -> {
             PokemonDetailSection(
                 pokemonInfo = pokemonInfo.data!!,
                 modifier = modifier
                     .offset(y = (-20).dp)
             )
         }
-        is Resouse.Error -> {
+        is Resource.Error -> {
             Text(
                 text = pokemonInfo.message!!,
                 color = Color.Red,
                 modifier = modifier
             )
         }
-        is Resouse.Loading -> {
+        is Resource.Loading -> {
             CircularProgressIndicator(
-                color = MaterialTheme.colors.primary,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = loadingModifier
             )
         }
@@ -200,11 +207,15 @@ fun PokemonDetailSection(
             .verticalScroll(scrollState)
     ) {
         Text(
-            text = "#${pokemonInfo.id} ${pokemonInfo.name.capitalize(Locale.ROOT)}",
+            text = "#${pokemonInfo.id} ${pokemonInfo.name.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(
+                    Locale.ROOT
+                ) else it.toString()
+            }}",
             fontWeight = FontWeight.Bold,
             fontSize = 30.sp,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colors.onSurface
+            color = MaterialTheme.colorScheme.onSurface
         )
         PokemonTypeSection(types = pokemonInfo.types)
         PokemonDetailDataSection(
@@ -288,11 +299,11 @@ fun PokemonDetailDataItem(
         verticalArrangement = Arrangement.Center,
         modifier = modifier
     ) {
-        Icon(painter = dataIcon, contentDescription = null, tint = MaterialTheme.colors.onSurface)
+        Icon(painter = dataIcon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "$dataValue$dataUnit",
-            color = MaterialTheme.colors.onSurface
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -301,8 +312,8 @@ fun PokemonDetailDataItem(
 fun PokemonStat(
     statName: String,
     statValue: Int,
-    statMaxValue: Int,
-    statColor: Color,
+    statMaxValue: Unit,
+    statColor: Any,
     height: Dp = 28.dp,
     animDuration: Int = 1000,
     animDelay: Int = 0
@@ -371,7 +382,7 @@ fun PokemonBaseStats(
         Text(
             text = "Base stats:",
             fontSize = 20.sp,
-            color = MaterialTheme.colors.onSurface
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(4.dp))
 

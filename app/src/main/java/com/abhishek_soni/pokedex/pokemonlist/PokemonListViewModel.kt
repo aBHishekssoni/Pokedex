@@ -13,7 +13,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.palette.graphics.Palette
 import com.abhishek_soni.pokedex.data.models.PokedexListEntry
 import com.abhishek_soni.pokedex.repository.PokemonRepository
-import com.abhishek_soni.pokedex.util.Resouse
+import com.abhishek_soni.pokedex.util.Resource
+//import com.abhishek_soni.pokedex.util.Resouse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -72,7 +73,7 @@ class PokemonListViewModel @Inject constructor(
             isLoading.value = true
             val result = repository.getPokemonList(PAGE_SIZE, curPage * PAGE_SIZE)
             when(result) {
-                is Resouse.Success -> {
+                is Resource.Success -> {
                     endReached.value = curPage * PAGE_SIZE >= result.data!!.count
                     val pokedexEntries = result.data.results.mapIndexed { index, entry ->
                         val number = if(entry.url.endsWith("/")) {
@@ -89,17 +90,17 @@ class PokemonListViewModel @Inject constructor(
                     isLoading.value = false
                     pokemonList.value += pokedexEntries
                 }
-                is Resouse.Error -> {
+                is Resource.Error -> {
                     loadError.value = result.message!!
                     isLoading.value = false
                 }
 
-                is Resouse.Loading -> TODO()
+                is Resource.Loading -> TODO()
             }
         }
     }
 
-    fun calcDominantColor(drawable: Drawable, onFinish: (android.graphics.Color) -> Unit) {
+    fun calcDominantColor(drawable: Drawable, onFinish: (Color) -> Unit) {
         val bmp = (drawable as BitmapDrawable).bitmap.copy(Bitmap.Config.ARGB_8888, true)
 
         Palette.from(bmp).generate { palette ->

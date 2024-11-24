@@ -30,8 +30,8 @@ import com.abhishek_soni.pokedex.ui.theme.TypeWater
 import java.util.Locale
 
 
-fun parseTypeToColor(type: Type): Color {
-    return when(type.type.name.toLowerCase(Locale.ROOT)) {
+fun parseTypeToColor(type: Type): Any {
+    return when(type.type.name.lowercase(Locale.ROOT)) {
         "normal" -> TypeNormal
         "fire" -> TypeFire
         "water" -> TypeWater
@@ -50,11 +50,11 @@ fun parseTypeToColor(type: Type): Color {
         "dark" -> TypeDark
         "steel" -> TypeSteel
         "fairy" -> TypeFairy
-        else -> Color.Black
+        else -> Color.BLACK
     }
 }
 
-fun parseStatToColor(stat: Stat): Color {
+fun parseStatToColor(stat: Stat): Any {
     return when(stat.stat.name.toLowerCase()) {
         "hp" -> HPColor
         "attack" -> AtkColor
@@ -62,7 +62,7 @@ fun parseStatToColor(stat: Stat): Color {
         "special-attack" -> SpAtkColor
         "special-defense" -> SpDefColor
         "speed" -> SpdColor
-        else -> Color.White
+        else -> Color.WHITE
     }
 }
 
